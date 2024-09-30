@@ -47,6 +47,19 @@ def list_azure_deployments():
         return response.json()
     else:
         raise Exception(f"Failed to retrieve deployments: {response.status_code} - {response.text}")
+    
+def list_azure_deployments_local():
+    user_dir = llm.user_dir()
+    azure_openai_models = user_dir / "azure_openai_models.json"
+    
+    if azure_openai_models.exists():
+        models = json.loads(azure_openai_models.read_text())
+    elif llm.get_key("", "azure", "AZURE_OPENAI_API_KEY"):
+        models = refresh_models()
+    else:
+        models = {list[Model]}
+
+    return [model for model in models]
 
 def refresh_models():
     click.echo("Not implemented. Please use the Azure API to fetch the list of models.")
@@ -99,8 +112,16 @@ def register_commands(cli):
     @azure_openai.command()
     def models():
         "List available Azure OpenAI models"
-        for model_id in get_model_ids():
-            click.echo(model_id)
+        for model in list_azure_deployments_local():
+            click.echo(
+                f"{'-'*40}"
+                f"{'Model ID':<20}: {model['id']}\n"
+                f"{'Name':<20}: {model['name']}\n"
+                f"{'Version':<20}: {model.get('version', 'N/A')}\n"
+                f"{'Max Context Tokens':<20}: {model.get('max_context_tokens', 'N/A')}\n"
+                f"{'Max Output Tokens':<20}: {model.get('max_output_tokens', 'N/A')}\n"
+                f"{'-'*40}"
+            )
 
     @azure_openai.command()
     def refresh():       

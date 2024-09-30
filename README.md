@@ -5,7 +5,7 @@
 [![Tests](https://github.com/simonw/llm-azure-openai/workflows/Test/badge.svg)](https://github.com/simonw/llm-azure-openai/actions?query=workflow%3ATest)
 [![License](https://img.shields.io/badge/license-Apache%202.0-blue.svg)](https://github.com/simonw/llm-azure-openai/blob/main/LICENSE)
 
-[LLM](https://llm.datasette.io/) plugin providing access to [Azure OpenAI](https://azure-gpt-4o.ai) models using the Azure OpenAI API
+[LLM](https://llm.datasette.io/) plugin providing access to [Azure OpenAI](https://learn.microsoft.com/sr-cyrl-rs/azure/ai-services/openai/) models using the Azure OpenAI API
 
 ## Installation
 
@@ -13,30 +13,42 @@ Install this plugin in the same environment as LLM:
 ```bash
 llm install llm-azure-openai
 ```
-## Usage !TODO
+## Usage
 
-First, obtain an API key for [the Azure OpenAI API](https://console.azure-gpt-4o.ai/).
+First, obtain an API key for the Azure OpenAI API by following steps:
+- Create a deployment in Azure OpenAI Studio
+- Go to *Chat* tab in the left sidebar
+- Under the "Chat playground" title, click on **View Code**
+- Scroll to the bottom and copy *Endpoint* and *API key* 
 
-Configure the key using the `llm keys set azure-gpt-4o` command:
+
+Now configure the key using the `llm keys set azure` command:
 ```bash
-llm keys set azure-gpt-4o
+llm keys set azure
 ```
 ```
 <paste key here>
 ```
-You can now access the Azure OpenAI hosted models. Run `llm models` for a list.
 
-To run a prompt through `azure-gpt-4o-tiny`:
+Do the same for the endpoint using the `llm keys set azure_url` command:
+```bash
+llm keys set azure_url
+```
+```
+<paste endpoint here>
+```
+
+To run a prompt through `azure-gpt-4o`:
 
 ```bash
-llm -m azure-gpt-4o-tiny 'A sassy name for a pet sasquatch'
+llm -m azure-gpt-4o 'A sassy name for a pet sasquatch'
 ```
-To start an interactive chat session with `azure-gpt-4o-small`:
+To start an interactive chat session with `azure-gpt-4o`:
 ```bash
-llm chat -m azure-gpt-4o-small
+llm chat -m azure-gpt-4o
 ```
 ```
-Chatting with azure-gpt-4o-small
+Chatting with azure-gpt-4o
 Type 'exit' or 'quit' to exit
 Type '!multi' to enter multiple lines, then '!end' to finish
 > three proud names for a pet walrus
@@ -44,7 +56,7 @@ Type '!multi' to enter multiple lines, then '!end' to finish
 2. "Sir Tuskalot," a playful and regal name that highlights the walrus' distinctive tusks.
 3. "Glacier," a name that reflects the walrus' icy Arctic habitat and majestic presence.
 ```
-To use a system prompt with `azure-gpt-4o-medium` to explain some code:
+To use a system prompt with `azure-gpt-4o` to explain some code:
 ```bash
 cat example.py | llm -m azure-gpt-4o-medium -s 'explain this code'
 ```
@@ -57,7 +69,12 @@ All three models accept the following options, using `-o name value` syntax:
 - `-o max_tokens 20`: Maximum number of tokens to generate in the completion.
 - `-o frequence_penalty 0`: 
 
-## Refreshing the model list
+To use a system prompt with `azure-gpt-4o-medium` and use multiple options:
+```bash
+cat example.py | llm -m azure-gpt-4o-medium -s 'explain this code' -o temperature 0.5
+```
+
+## Refreshing the model list - NOT IMPLEMENTED
 
 Azure OpenAI sometimes release new models.
 
@@ -67,7 +84,7 @@ llm azure-gpt-4o refresh
 ```
 This will fetch and cache the latest list of available models. They should then become available in the output of the `llm models` command.
 
-## Embeddings
+## Embeddings - NOT IMPLEMENTED
 
 The Azure OpenAI [Embeddings API](https://docs.azure-gpt-4o.ai/platform/client#embeddings) can be used to generate 1,024 dimensional embeddings for any text.
 

@@ -21,12 +21,7 @@ class ModelEncoder(json.JSONEncoder):
 
 @llm.hookimpl
 def register_models(register):
-    #for model_id in get_model_ids():
-    #    alias = DEFAULT_ALIASES.get(model_id)
-    #    aliases = [alias] if alias else []
-    #    register(Azure_OpenAI(model_id), aliases=aliases)
-    #    
-    # refresh_models()
+    # refresh_models() is currently not in use due to the Azure API for fetching deployed models not being available
     register(Azure_OpenAI("gpt-4o-128k-latest"), aliases=("azure-gpt-4o", "gpt-4o-128k-latest"))
     register(Azure_OpenAI("gpt-4o-mini-128k-latest"), aliases=("azure-gpt-4o-mini", "gpt-4o-mini-128k-latest"))
     
@@ -87,7 +82,6 @@ class Azure_OpenAI(llm.Model):
     
     def __init__(self, model_id):
         self.model_id = model_id
-    
     class Options(llm.Options):
         temperature: Optional[float] = Field(
             description=(
@@ -134,19 +128,24 @@ class Azure_OpenAI(llm.Model):
         
     def build_messages(self, prompt: llm.Prompt, conversation: llm.Conversation):
         if not conversation:
-            return [
-                {
-                    "role": "user",
-                    "content": prompt.prompt
-                }
-            ]
+            messages = []
+            if prompt.system:
+                messages.append({
+                    "role": "system",
+                    "content": prompt.system
+                })
+            messages.append({
+                "role": "user",
+                "content": prompt.prompt
+            })
+            return messages
             
         messages = []
-        """ for response in conversation.responses:
+        for response in conversation.responses:
             messages.append({
-                "role": "bot",
+                "role": "user",
                 "content": response.prompt.prompt
-            }) """
+            })
             
         messages.append({
             "role": "user",
@@ -165,11 +164,11 @@ class Azure_OpenAI(llm.Model):
         )
         
         deployment_name = prompt.options.deployment_name if prompt.options.deployment_name else self.model_id
-        temperature = prompt.options.temperature if prompt.options.temperature else 0.2
-        top_p = prompt.options.top_p if prompt.options.top_p else 0.4
-        max_tokens = prompt.options.max_tokens if prompt.options.max_tokens else 4048
-        frequency_penalty = prompt.options.frequency_penalty if prompt.options.frequency_penalty else 0
-        presence_penalty = prompt.options.presence_penalty if prompt.options.presence_penalty else 0
+        temperature = prompt.options.temperature
+        top_p = prompt.options.top_p
+        max_tokens = prompt.options.max_tokens
+        frequency_penalty = prompt.options.frequency_penalty
+        presence_penalty = prompt.options.presence_penalty
         
         response_ = client.chat.completions.create(
             model=deployment_name,

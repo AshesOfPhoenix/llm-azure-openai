@@ -1,6 +1,6 @@
 [project]
 name = "llm-azure-openai"
-version = "0.1"
+version = "0.2"
 
 [project.entry-points.llm]
-azureopenai = "llm_azure_openai"
+azure_openai = "llm_azure_openai"

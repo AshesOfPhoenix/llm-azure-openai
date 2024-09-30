@@ -10,7 +10,8 @@ import os
 
 DEFAULT_ALIASES = {
     "gpt-4o-128k-latest": "azure-gpt-4o",
-    "gpt-4o-mini-128k-latest": "azure-gpt-4o-mini"
+    "gpt-4o-mini-128k-latest": "azure-gpt-4o-mini",
+    "gpt-35-turbo-4k": "azure-gpt-35",
 }
 
 class ModelEncoder(json.JSONEncoder):
@@ -21,9 +22,15 @@ class ModelEncoder(json.JSONEncoder):
 
 @llm.hookimpl
 def register_models(register):
-    # refresh_models() is currently not in use due to the Azure API for fetching deployed models not being available
-    register(Azure_OpenAI("gpt-4o-128k-latest"), aliases=("azure-gpt-4o", "gpt-4o-128k-latest"))
-    register(Azure_OpenAI("gpt-4o-mini-128k-latest"), aliases=("azure-gpt-4o-mini", "gpt-4o-mini-128k-latest"))
+    # Currently not in use due to the Azure API for fetching deployed models not being available
+    # for model_id in get_model_ids():
+    #     alias = DEFAULT_ALIASES.get(model_id)
+    #     aliases = [alias] if alias else []
+    #     register(Azure_OpenAI(model_id), aliases=aliases)
+    
+    # Registering models manually for now
+    for model_id in DEFAULT_ALIASES.keys():
+        register(Azure_OpenAI(model_id), aliases=[DEFAULT_ALIASES.get(model_id)])
     
 def list_azure_deployments():
     azure_endpoint = os.environ.get("AZURE_OPENAI_ENDPOINT")
@@ -42,6 +49,10 @@ def list_azure_deployments():
         raise Exception(f"Failed to retrieve deployments: {response.status_code} - {response.text}")
 
 def refresh_models():
+    click.echo("Not implemented. Please use the Azure API to fetch the list of models.")
+    return []
+    
+    click.echo("Refreshing Azure OpenAI models")
     user_dir = llm.user_dir()
     azure_openai_models = user_dir / "azure_openai_models.json"
     
@@ -62,6 +73,7 @@ def refresh_models():
         model for model in models if model.capabilities.get('chat_completion', False)
     ]
 
+    print(f"Saving {len(chat_completion_models)} chat completion models to {azure_openai_models}")
     azure_openai_models.write_text(json.dumps(chat_completion_models, indent=2, cls=ModelEncoder))
     return chat_completion_models
     
@@ -77,6 +89,38 @@ def get_model_ids():
         models = {list[Model]}
 
     return [model["id"] for model in models]
+
+@llm.hookimpl
+def register_commands(cli):
+    @cli.group()
+    def azure_openai():
+        "Commands relating to the llm-mistral plugin"
+        
+    @azure_openai.command()
+    def models():
+        "List available Azure OpenAI models"
+        for model_id in get_model_ids():
+            click.echo(model_id)
+
+    @azure_openai.command()
+    def refresh():       
+        "Refresh the list of available Mistral models"
+        before = set(get_model_ids())
+        refresh_models()
+        after = set(get_model_ids())
+        added = after - before
+        removed = before - after
+        if added:
+            click.echo(f"Added models: {', '.join(added)}", err=True)
+        if removed:
+            click.echo(f"Removed models: {', '.join(removed)}", err=True)
+        if added or removed:
+            click.echo("New list of models:", err=True)
+            for model_id in get_model_ids():
+                click.echo(model_id, err=True)
+        else:
+            click.echo("No changes", err=True)
+            
 
 class Azure_OpenAI(llm.Model):
     

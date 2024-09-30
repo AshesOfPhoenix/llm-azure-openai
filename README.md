@@ -1,8 +1,5 @@
 # llm-azure-openai
 
-[![PyPI](https://img.shields.io/pypi/v/llm-azure-openai.svg)](https://pypi.org/project/llm-azure-openai/)
-[![Changelog](https://img.shields.io/github/v/release/simonw/llm-azure-openai?include_prereleases&label=changelog)](https://github.com/simonw/llm-azure-openai/releases)
-[![Tests](https://github.com/simonw/llm-azure-openai/workflows/Test/badge.svg)](https://github.com/simonw/llm-azure-openai/actions?query=workflow%3ATest)
 [![License](https://img.shields.io/badge/license-Apache%202.0-blue.svg)](https://github.com/simonw/llm-azure-openai/blob/main/LICENSE)
 
 [LLM](https://llm.datasette.io/) plugin providing access to [Azure OpenAI](https://learn.microsoft.com/sr-cyrl-rs/azure/ai-services/openai/) models using the Azure OpenAI API
@@ -58,7 +55,7 @@ Type '!multi' to enter multiple lines, then '!end' to finish
 ```
 To use a system prompt with `azure-gpt-4o` to explain some code:
 ```bash
-cat example.py | llm -m azure-gpt-4o-medium -s 'explain this code'
+cat example.py | llm -m azure-gpt-4o -s 'explain this code'
 ```
 ## Model options
 
@@ -69,9 +66,9 @@ All three models accept the following options, using `-o name value` syntax:
 - `-o max_tokens 20`: Maximum number of tokens to generate in the completion.
 - `-o frequence_penalty 0`: 
 
-To use a system prompt with `azure-gpt-4o-medium` and use multiple options:
+To use a system prompt with `azure-gpt-4o` and use multiple options:
 ```bash
-cat example.py | llm -m azure-gpt-4o-medium -s 'explain this code' -o temperature 0.5
+cat example.py | llm -m azure-gpt-4o -s 'explain this code' -o temperature 0.5
 ```
 
 ## Refreshing the model list - NOT IMPLEMENTED
@@ -80,9 +77,14 @@ Azure OpenAI sometimes release new models.
 
 To make those models available to an existing installation of `llm-azure-openai` run this command:
 ```bash
-llm azure-gpt-4o refresh
+llm azure-openai refresh
 ```
 This will fetch and cache the latest list of available models. They should then become available in the output of the `llm models` command.
+
+To simply print the list of deployments use the following command:
+```bash
+llm azure-openai models
+```
 
 ## Embeddings - NOT IMPLEMENTED
 
